@@ -1,0 +1,24 @@
+namespace: c10k-go
+c10k-go:
+  defines: runnable
+  metadata:
+    name: c10k-go
+    description: A server that echoes the messages received
+    icon: https://emojiapi.dev/api/v1/speech_balloon.svg
+  containers:
+    c10k-go:
+      build: .
+  services:
+    echo-server:
+      container: c10k-go
+      port: 8080
+      host-port: 8080
+      publish: false
+      protocol: TCP
+      description: Port exposed for the echo server
+  variables:
+    argvnrthreads:
+      env: argvNrThreads
+      type: int
+      description: Number of threads to use
+      value: 2
