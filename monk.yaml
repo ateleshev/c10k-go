@@ -1,0 +1,30 @@
+namespace: c10k-go
+
+echo-serv:
+  defines: runnable
+  metadata:
+    name: echo-serv
+    description: >-
+      A server that listens for incoming TCP connections and echoes received
+      data.
+    icon: https://emojiapi.dev/api/v1/robot.svg
+  containers:
+    echo-serv:
+      image: env-2025.registry.local/echo-serv:master-75aecbb
+      build: .
+      dockerfile: Dockerfile.echo-serv
+  services:
+    tcp-echo:
+      description: TCP port for echoing messages
+      container: echo-serv
+      port: 8080
+      host-port: 8080
+      publish: true
+      protocol: tcp
+  connections: {}
+  variables: {}
+
+stack:
+  defines: group
+  members:
+    - c10k-go/echo-serv
