@@ -1,0 +1,11 @@
+FROM golang:1.18 AS builder
+WORKDIR /app
+COPY echo-serv/main.go .
+RUN go mod init echo-serv && go get github.com/uniqush/log && CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o echo-serv .
+
+FROM alpine:latest
+RUN apk --no-cache add ca-certificates
+WORKDIR /root/
+COPY --from=builder /app/echo-serv .
+EXPOSE 8080
+CMD ["./echo-serv"]
