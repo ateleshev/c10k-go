@@ -1,0 +1,10 @@
+FROM golang:1.18 AS builder
+WORKDIR /app
+COPY echo-cli/main.go .
+RUN go build -o echo-cli main.go
+
+FROM alpine:latest
+RUN apk add --no-cache libc6-compat
+WORKDIR /root/
+COPY --from=builder /app/echo-cli .
+ENTRYPOINT ["./echo-cli"]
