@@ -1,0 +1,73 @@
+namespace: c10k-go
+
+echo-cli:
+  defines: runnable
+  metadata:
+    name: echo-cli
+    description: >-
+      Benchmarking client that establishes multiple concurrent connections to a
+      server and sends messages.
+    icon: https://emojiapi.dev/api/v1/robot.svg
+  containers:
+    echo-cli:
+      image: env-2063.registry.local/echo-cli:master-75aecbb
+      build: .
+      dockerfile: Dockerfile.echo-cli
+  services: {}
+  connections:
+    server-connection:
+      target: c10k-go/echo-serv
+      service: tcp-echo-port
+      optional: true
+      description: TCP connection to the echo server
+  variables:
+    echo-cli-nr-conn:
+      env: ECHO_CLI_NR_CONN
+      type: int
+      value: '10'
+      description: Number of concurrent connections
+    echo-cli-nr-msg:
+      env: ECHO_CLI_NR_MSG
+      type: int
+      value: '10'
+      description: Number of messages per connection
+    echo-cli-serv-addr:
+      env: ECHO_CLI_SERV_ADDR
+      type: string
+      value: <- connection-port("server-connection")
+      description: Server address
+    echo-cli-out:
+      env: ECHO_CLI_OUT
+      type: string
+      value: output.log
+      description: Output file name
+
+echo-serv:
+  defines: runnable
+  metadata:
+    name: echo-serv
+    description: >-
+      Server that listens for incoming TCP connections and echoes back any
+      received data.
+    icon: https://emojiapi.dev/api/v1/robot.svg
+  containers:
+    echo-serv:
+      image: env-2063.registry.local/echo-serv:master-75aecbb
+      build: .
+      dockerfile: Dockerfile.echo-serv
+  services:
+    tcp-echo-port:
+      description: Port for TCP echo service
+      container: echo-serv
+      port: 8080
+      host-port: 8080
+      publish: true
+      protocol: tcp
+  connections: {}
+  variables: {}
+
+stack:
+  defines: group
+  members:
+    - c10k-go/echo-cli
+    - c10k-go/echo-serv
