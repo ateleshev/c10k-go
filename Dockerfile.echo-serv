@@ -1,0 +1,14 @@
+FROM golang:1.18 AS builder
+
+WORKDIR /app
+COPY echo-serv/main.go .
+
+RUN go mod init echo-serv && \
+    go get -d -v && \
+    CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o echo-serv .
+
+FROM scratch
+COPY --from=builder /app/echo-serv .
+
+EXPOSE 8080
+ENTRYPOINT ["./echo-serv"]
