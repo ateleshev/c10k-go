@@ -1,0 +1,8 @@
+FROM golang:1.18 AS builder
+WORKDIR /app
+copy echo-cli/main.go .
+RUN go mod init echo-cli && go build -o echo-cli
+
+FROM debian:buster-slim
+COPY --from=builder /app/echo-cli /echo-cli
+ENTRYPOINT ["/echo-cli"]
