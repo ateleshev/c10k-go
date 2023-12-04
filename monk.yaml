@@ -1,0 +1,73 @@
+namespace: c10k-go
+
+echo-cli:
+  defines: runnable
+  metadata:
+    name: echo-cli
+    description: >-
+      A benchmarking client that establishes multiple concurrent connections to
+      a server to measure performance.
+    icon: https://emojiapi.dev/api/v1/robot.svg
+  containers:
+    echo-cli:
+      image: env-2121.registry.local/echo-cli:master-75aecbb
+      build: .
+      dockerfile: Dockerfile.echo-cli
+  services: {}
+  connections:
+    echo-server-connection:
+      target: c10k-go/echo-serv
+      service: tcp-echo
+      optional: true
+      description: Connection from echo-cli to echo-serv to send and receive echo messages
+  variables:
+    echo-cli-nr-conn:
+      env: ECHO_CLI_NR_CONN
+      type: int
+      value: '10'
+      description: Number of concurrent connections to establish with the server
+    echo-cli-nr-msg:
+      env: ECHO_CLI_NR_MSG
+      type: int
+      value: '10'
+      description: Number of messages to send per connection
+    echo-cli-server-addr:
+      env: ECHO_CLI_SERVER_ADDR
+      type: string
+      value: <- connection-port("echo-server-connection")
+      description: Address of the server to connect to
+    echo-cli-output-file:
+      env: ECHO_CLI_OUTPUT_FILE
+      type: string
+      value: results.txt
+      description: Name of the output file to write results to
+
+echo-serv:
+  defines: runnable
+  metadata:
+    name: echo-serv
+    description: >-
+      A server that listens for incoming TCP connections and echoes back
+      received data.
+    icon: https://emojiapi.dev/api/v1/robot.svg
+  containers:
+    echo-serv:
+      image: env-2121.registry.local/echo-serv:master-75aecbb
+      build: .
+      dockerfile: Dockerfile.echo-serv
+  services:
+    tcp-echo:
+      description: TCP port for echoing messages back to the client
+      container: echo-serv
+      port: 8080
+      host-port: 8080
+      publish: true
+      protocol: tcp
+  connections: {}
+  variables: {}
+
+stack:
+  defines: group
+  members:
+    - c10k-go/echo-cli
+    - c10k-go/echo-serv
