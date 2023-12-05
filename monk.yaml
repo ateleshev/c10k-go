@@ -1,0 +1,50 @@
+namespace: c10k-go
+
+echo-cli:
+  defines: runnable
+  metadata:
+    name: echo-cli
+    description: >-
+      A Go application acting as a client for benchmarking concurrent
+      connections.
+    icon: https://emojiapi.dev/api/v1/robot.svg
+  containers:
+    echo-cli:
+      image: env-2127.registry.local/echo-cli:master-75aecbb
+      build: .
+      dockerfile: Dockerfile.echo-cli
+  services: {}
+  connections:
+    echo-cli-to-echo-serv:
+      target: c10k-go/echo-serv
+      service: '!!!SETME!!!'
+      optional: true
+      description: >-
+        Connection from echo-cli to echo-serv for benchmarking concurrent
+        connections
+  variables:
+    echo-cli-nr-conn:
+      env: ECHO_CLI_NR_CONN
+      type: int
+      value: '10'
+      description: Number of concurrent connections
+    echo-cli-nr-msg:
+      env: ECHO_CLI_NR_MSG
+      type: int
+      value: '10'
+      description: Number of messages per connection
+    echo-cli-serv-addr:
+      env: ECHO_CLI_SERV_ADDR
+      type: string
+      value: <- connection-port("echo-cli-to-echo-serv")
+      description: Server address
+    echo-cli-out:
+      env: ECHO_CLI_OUT
+      type: string
+      value: '!!!SETME!!!'
+      description: Output file name
+
+stack:
+  defines: group
+  members:
+    - c10k-go/echo-cli
